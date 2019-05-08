@@ -1,8 +1,17 @@
 const Joi = require("Joi");
+const helmet = require("helmet");
 const express = require("express");
+const logger = require("./logger");
+const auth = require("./authenticating");
 
 const app = express();
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
+app.use(helmet());
+app.use(logger);
+app.use(auth);
 
 const genres = [
   { id: 1, name: "Romance" },
