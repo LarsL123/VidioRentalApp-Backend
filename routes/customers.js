@@ -1,26 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const Joi = require("Joi");
 const mongoose = require("mongoose");
-
-const Customer = mongoose.model(
-  new mongoose.Schema("Customer", {
-    isGold: {
-      type: Boolean,
-      required: true
-    },
-    name: {
-      type: String,
-      required: true,
-      minlength: 3,
-      maxLength: 30
-    },
-    phone: {
-      type: String,
-      required: true
-    }
-  })
-);
+const { validate, Customer } = require("../models/customer");
 
 router.get("/", async (req, res) => {
   const customers = await Customer.find().sort("name");
@@ -37,7 +18,8 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const error = validateCustomer(req.body);
+  const { error } = validate(req.body);
+
   if (error) return res.status(400).send(error.details[0].message);
 
   let customer = new Customer(req.body);
@@ -51,18 +33,39 @@ router.post("/", async (req, res) => {
   }
 });
 
-/* router.put("/:id", async (req, res) => {
-  const error = validateCustomer(req.body);
-}); */
+router.put("/:id", async (req, res) => {
+  const { body, params } = req;
 
-function validateCustomer(customer) {
-  const schema = {
-    name: Joi.String()
-      .required()
-      .min(3)
-      .max(30),
-    isGold: Joi.boolean().required(),
-    phone: Joi.String().required()
-  };
-  return Joi.validate(customer);
-}
+  const { error } = validate(body);
+  if (error) return res.status(400).send(error.details[0].message);
+  try {
+    const result = await Customer.findByIdAndUpdate(
+      params.id,
+      {
+        $set: {
+          name: body.name,
+          isGold: body.isGold,
+          phone: body.phone
+        }
+      },
+      { new: true }
+    );
+    res.send(result);
+  } catch (ex) {
+    for (field in ex.errors) {
+      console.log(ex.errors[field].message);
+    }
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  const customer = await Customer.findByIdAndDelete(req.params.id);
+  if (!customer) {
+    return res
+      .status(404)
+      .send("The customer with the id: " + id + " was not found");
+  }
+  res.send(customer);
+});
+
+module.exports = router;
