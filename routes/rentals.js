@@ -1,8 +1,12 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const { Movie } = require("../models/movie");
 const { Rental, validate } = require("../models/rental");
 const { Customer } = require("../models/customer");
+const Fawn = require("fawn");
+
+Fawn.init(mongoose);
 
 router.get("/", async (req, res) => {
   const rentals = await Rental.find();
@@ -36,17 +40,21 @@ router.post("/", async (req, res) => {
   });
 
   try {
-    rental = await rental.save();
-
-    movie.numberInStock--;
-    movie.save();
+    new Fawn.Task()
+      .save("rentals", rental)
+      .update("movies", { _id: movie._id }, { $inc: { numberInStock: -1 } })
+      .run();
 
     res.send(rental);
   } catch (ex) {
     for (field in ex.errors) {
       console.log(ex.errors[field].message);
     }
-    res.status(400).send("Was not not able to add rental to database");
+    res
+      .status(500)
+      .send(
+        "Was not not able to add rental to database, Something failed on the server"
+      );
   }
 });
 
