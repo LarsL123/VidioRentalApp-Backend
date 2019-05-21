@@ -34,7 +34,7 @@ function validateMovie(genre) {
       .min(0)
       .max(100)
       .required(),
-    genreId: Joi.string().required()
+    genreId: Joi.objectId().required()
   };
 
   return Joi.validate(genre, schema);
