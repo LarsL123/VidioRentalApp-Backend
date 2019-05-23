@@ -5,15 +5,16 @@ const { Movie } = require("../models/movie");
 const { Rental, validate } = require("../models/rental");
 const { Customer } = require("../models/customer");
 const Fawn = require("fawn");
+const auth = require("../middlewear/auth");
 
 Fawn.init(mongoose);
 
-router.get("/", async (req, res) => {
+router.get("/me", async (req, res) => {
   const rentals = await Rental.find();
   res.send(rentals);
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
@@ -57,39 +58,5 @@ router.post("/", async (req, res) => {
       );
   }
 });
-
-// router.put("/:id", async (req, res) => {
-//   const { error } = validate(req.body);
-//   if (error) return res.status(400).send(error.details[0].message);
-
-//   const movie = await Rental.findByIdAndUpdate(
-//     req.params.id,
-//     {
-//       title: req.body.title,
-//       numberInStock: req.body.numberInStock,
-//       dailyRentalRate: req.body.dailyRentalRate,
-//       genre: req.body.genre
-//     },
-//     { new: true }
-//   );
-//   if (!movie)
-//     return res.status(404).send("The genre with the given ID was not found.");
-
-//   res.send(movie);
-// });
-
-// router.delete("/:id", async (req, res) => {
-//   const movie = await Rental.findByIdAndRemove(req.params.id);
-//   if (!movie)
-//     return res.status(404).send("The genre with the given ID was not found.");
-//   res.send(movie);
-// });
-
-// router.get("/:id", async (req, res) => {
-//   const movie = await Rental.findById(req.params.id);
-//   if (!movie)
-//     return res.status(404).send("The genre with the given ID was not found.");
-//   res.send(movie);
-// });
 
 module.exports = router;
