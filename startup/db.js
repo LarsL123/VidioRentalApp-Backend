@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const logger = require("../services/logging");
+const logger = require("../services/logger");
 
 module.exports = function() {
   mongoose

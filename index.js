@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const logger = require("./services/logging");
+const logger = require("./services/logger");
 
 logger.init();
 require("./startup/routes")(app);
