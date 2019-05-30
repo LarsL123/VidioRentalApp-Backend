@@ -4,7 +4,7 @@ require("express-async-errors");
 
 const options = {
   file: {
-    level: "info",
+    level: "warn",
     filename: "logfile.log",
     handleExceptions: true,
     json: true,
