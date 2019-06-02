@@ -3,7 +3,7 @@ const router = express.Router();
 const { validate, Genre } = require("../models/genre");
 const auth = require("../middlewear/auth");
 const admin = require("../middlewear/admin");
-const mongoose = require("mongoose");
+const validateObjectId = require("../middlewear/validateObjectId");
 
 router.get("/", async (req, res) => {
   const genres = await Genre.find().sort("name");
@@ -18,15 +18,8 @@ router.post("/", auth, async (req, res) => {
     name: req.body.name
   });
 
-  try {
-    await genre.save();
-    res.send(genre);
-  } catch (ex) {
-    for (field in ex.errors) {
-      console.log(ex.errors[field].message);
-    }
-    res.status(400).send("Was not not able to add genre to database");
-  }
+  await genre.save();
+  res.send(genre);
 });
 
 router.put("/:id", auth, async (req, res) => {
@@ -51,9 +44,7 @@ router.delete("/:id", [auth, admin], async (req, res) => {
   res.send(genre);
 });
 
-router.get("/:id", async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id))
-    return res.status(404).send("Invalid ID");
+router.get("/:id", validateObjectId, async (req, res) => {
   const genre = await Genre.findById(req.params.id);
   if (!genre)
     return res.status(404).send("The genre with the given ID was not found.");
@@ -61,19 +52,3 @@ router.get("/:id", async (req, res) => {
 });
 
 module.exports = router;
-
-/* async function dsdo() {
-  const course = new Genre({
-    name: "Romance"
-  });
-  try {
-    const result = await course.save();
-    console.log(result);
-  } catch (ex) {
-    for (field in ex.errors) {
-      console.log(ex.errors[field].message);
-    }
-  }
-}
-
-dsdo(); */

@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 const express = require("express");
 const router = express.Router();
-const { User, validate } = require("../models/users");
+const { User, validate } = require("../models/user");
 const auth = require("../middlewear/auth");
 
 router.get("/me", auth, async (req, res) => {
