@@ -72,26 +72,3 @@ router.get("/:id", async (req, res) => {
 });
 
 module.exports = router;
-
-// mongoose
-//   .connect("mongodb://localhost/vidly_dev")
-//   .then(() => "Connected")
-//   .catch(err => console.log("Eroro in connection yo mongo db" + err));
-
-// async function addMovie(title, numberInStock, dailyRentalRate, genre) {
-//   const movie = new Movie({
-//     title: title,
-//     numberInStock: numberInStock,
-//     dailyRentalRate: dailyRentalRate,
-//     genre: genre
-//   });
-//   try {
-//     const result = await movie.save();
-//     console.log(result);
-//   } catch (ex) {
-//     console.log(ex);
-//   }
-//   movie.save();
-// }
-
-// addMovie(new Genre({ name: "Lars Lien" }));
