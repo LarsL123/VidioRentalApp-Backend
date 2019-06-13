@@ -1,6 +1,9 @@
 const winston = require("winston");
+const config = require("config");
 require("winston-mongodb");
 require("express-async-errors");
+
+const database = config.get("db");
 
 const options = {
   file: {
@@ -17,7 +20,7 @@ const options = {
   },
   mongoDB: {
     level: "error",
-    db: "mongodb://localhost/vidly_dev"
+    db: database
   }
 };
 
