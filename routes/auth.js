@@ -1,5 +1,5 @@
 const _ = require("lodash");
-const Joi = require("Joi");
+const Joi = require("joi");
 const bcrypt = require("bcrypt");
 const express = require("express");
 const router = express.Router();
