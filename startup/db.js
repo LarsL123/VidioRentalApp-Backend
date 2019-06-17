@@ -9,5 +9,9 @@ module.exports = function() {
       useCreateIndex: true,
       useNewUrlParser: true
     })
-    .then(() => logger.info(`Connected to ${database}..`));
+    .then(() => logger.info(`Connected to ${database}..`))
+    .catch(err => {
+      logger.error(`Was not able to connect to ${database}, shutting down:`);
+      process.exit(1);
+    });
 };
