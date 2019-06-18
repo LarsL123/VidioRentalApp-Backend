@@ -5,6 +5,20 @@ require("express-async-errors");
 
 const database = config.get("db");
 
+const errorStackFormat = winston.format(error => {
+  const obj = Object.assign({}, error, {
+    message: error.message.split("\n")[0],
+    details: {
+      type: "Error", //Exception vs promise rejection
+      stackTrace: error.trace,
+      trace: error.trace
+    }
+  });
+  console.log(obj); //See winstin documentation...
+
+  return obj;
+});
+
 const options = {
   file: {
     level: "warn",
@@ -20,11 +34,18 @@ const options = {
   },
   mongoDB: {
     level: "error",
-    db: database
+    db: database,
+    handleExceptions: true,
+    format: errorStackFormat()
+    /*  format: winston.format.combine(
+      errorStackFormat(),
+      winston.format.metadata()
+    ) */
   }
 };
 
 const logger = winston.createLogger({
+  //format: winston.format.combine(errorStackFormat(), winston.format.simple()),
   transports: [
     new winston.transports.Console(options.console),
     new winston.transports.File(options.file),
@@ -33,26 +54,22 @@ const logger = winston.createLogger({
 });
 
 function init() {
-  process.on("uncaughtException", ex => {
-    logger.error("FATAL: Uncaught exeption: ", ex);
-    process.exit(1);
-  });
+  /*  process.on("uncaughtException", ex => {
+     logger.error("Uncaught exeption: " + ex.message, {
+      stackTrace: ex.stack
+    }); 
+
+    logger.error("An error occured");
+    //process.exit(1);
+  }); */
 
   process.on("unhandledRejection", ex => {
-    logger.error("FATAL: Unhandled Rejection: ", ex);
-    process.exit(1);
+    logger.error("Unhandled Rejection: ", { stackTrace: "ex.stack" }, () => {
+      process.exit(1);
+    });
   });
   /* 
-    winston.add(
-      new winston.transports.File({ filename: "logfile.log", level: 1 })
-    );
-    winston.add(
-      new winston.transports.MongoDB({
-        db: "mongodb://localhost/vidly_dev",
-        level: 0
-      })
-    );
-  
+
     if (process.env.NODE_ENV !== "production") {
       winston.add(
         new winston.transports.Console({
@@ -64,3 +81,14 @@ function init() {
 
 logger.init = init;
 module.exports = logger;
+
+/* const errorStackFormat = winston.format(info => {
+  console.log(info);
+  if (info instanceof Error) {
+    return Object.assign({}, info, {
+      stack: info.stack,
+      message: info.message
+    });
+  }
+  return info;
+}); */
