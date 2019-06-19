@@ -5,16 +5,14 @@ require("express-async-errors");
 
 const database = config.get("db");
 
-const errorStackFormat = winston.format(error => {
-  const obj = Object.assign({}, error, {
+const dbStackFormat = winston.format(error => {
+  const obj = {
     message: error.message.split("\n")[0],
-    details: {
-      type: "Error", //Exception vs promise rejection
-      stackTrace: error.trace,
-      trace: error.trace
-    }
-  });
-  console.log(obj); //See winstin documentation...
+
+    type: error.error.type || "Uncaught Exeption", //If this error was a promise then error.error.type is set by my custom process.on("unhandledRejection") call.
+    stackTrace: error.error.stack,
+    traceArray: error.trace
+  };
 
   return obj;
 });
@@ -30,22 +28,18 @@ const options = {
     colorize: false
   },
   console: {
+    handleExceptions: true,
     format: winston.format.simple()
   },
   mongoDB: {
     level: "error",
     db: database,
     handleExceptions: true,
-    format: errorStackFormat()
-    /*  format: winston.format.combine(
-      errorStackFormat(),
-      winston.format.metadata()
-    ) */
+    format: winston.format.combine(dbStackFormat(), winston.format.metadata())
   }
 };
 
 const logger = winston.createLogger({
-  //format: winston.format.combine(errorStackFormat(), winston.format.simple()),
   transports: [
     new winston.transports.Console(options.console),
     new winston.transports.File(options.file),
@@ -54,19 +48,9 @@ const logger = winston.createLogger({
 });
 
 function init() {
-  /*  process.on("uncaughtException", ex => {
-     logger.error("Uncaught exeption: " + ex.message, {
-      stackTrace: ex.stack
-    }); 
-
-    logger.error("An error occured");
-    //process.exit(1);
-  }); */
-
   process.on("unhandledRejection", ex => {
-    logger.error("Unhandled Rejection: ", { stackTrace: "ex.stack" }, () => {
-      process.exit(1);
-    });
+    ex.type = "Unhandled Rejection";
+    throw ex;
   });
   /* 
 
@@ -81,14 +65,3 @@ function init() {
 
 logger.init = init;
 module.exports = logger;
-
-/* const errorStackFormat = winston.format(info => {
-  console.log(info);
-  if (info instanceof Error) {
-    return Object.assign({}, info, {
-      stack: info.stack,
-      message: info.message
-    });
-  }
-  return info;
-}); */
